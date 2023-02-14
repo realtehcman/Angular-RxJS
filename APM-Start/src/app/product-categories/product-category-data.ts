@@ -1,19 +1,38 @@
 import { ProductCategory } from './product-category';
 
 export class ProductCategoryData {
-
   static categories: ProductCategory[] = [
     {
       id: 1,
-      name: 'Garden'
+      name: 'Garden',
+    },
+    {
+      id: 2,
+      name: 'Garden',
     },
     {
       id: 3,
-      name: 'Toolbox'
+      name: 'Toolbox',
+    },
+    {
+      id: 4,
+      name: 'Toolbox',
     },
     {
       id: 5,
-      name: 'Gaming'
-    }
+      name: 'Gaming',
+    },
+    {
+      id: 8,
+      name: 'Gaming',
+    },
+    {
+      id: 10,
+      name: 'Gaming',
+    },
+    {
+      id: 13,
+      name: 'Toolbox',
+    },
   ];
 }
