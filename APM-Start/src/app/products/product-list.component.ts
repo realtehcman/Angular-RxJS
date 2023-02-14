@@ -1,6 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { rawListeners } from 'process';
 
-import { catchError, EMPTY, from, Observable, of, Subscription } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  from,
+  map,
+  Observable,
+  of,
+  Subscription,
+} from 'rxjs';
 import { ProductCategory } from '../product-categories/product-category';
 
 import { Product } from './product';
@@ -17,6 +26,8 @@ export class ProductListComponent implements OnInit {
 
   products$!: Observable<Product[]>;
   sub!: Subscription;
+  filteredId!: number;
+  filteredProducts$!: Observable<Product[]>;
 
   constructor(private productService: ProductService) {}
 
@@ -26,6 +37,10 @@ export class ProductListComponent implements OnInit {
         this.errorMessage = error;
         return EMPTY;
       })
+    );
+    this.filteredId = 1;
+    this.filteredProducts$ = this.products$.pipe(
+      map((arrays) => arrays.filter((el) => el.categoryId === this.filteredId))
     );
   }
 
