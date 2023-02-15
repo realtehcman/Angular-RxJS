@@ -26,7 +26,7 @@ export class ProductListComponent implements OnInit {
 
   products$!: Observable<Product[]>;
   sub!: Subscription;
-  filteredId!: number;
+  selectedCategoryId?: number;
   filteredProducts$!: Observable<Product[]>;
 
   constructor(private productService: ProductService) {}
@@ -38,9 +38,15 @@ export class ProductListComponent implements OnInit {
         return EMPTY;
       })
     );
-    this.filteredId = 1;
+    this.selectedCategoryId = 1;
     this.filteredProducts$ = this.products$.pipe(
-      map((arrays) => arrays.filter((el) => el.categoryId === this.filteredId))
+      map((arrays) =>
+        arrays.filter((product) =>
+          this.selectedCategoryId
+            ? product.categoryId === this.selectedCategoryId
+            : true
+        )
+      )
     );
   }
 
