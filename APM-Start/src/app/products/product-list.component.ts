@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { rawListeners } from 'process';
 
 import {
   catchError,
+  distinct,
   EMPTY,
-  from,
   map,
   Observable,
-  of,
   Subscription,
 } from 'rxjs';
 import { ProductCategory } from '../product-categories/product-category';
+import { ProductCategoryService } from '../product-categories/product-category.service';
 
 import { Product } from './product';
 import { ProductService } from './product.service';
@@ -22,14 +21,18 @@ import { ProductService } from './product.service';
 export class ProductListComponent implements OnInit {
   pageTitle = 'Product List';
   errorMessage = '';
-  categories: ProductCategory[] = [];
+  categories$!: Observable<ProductCategory[]>;
+  categoryNames$!: Observable<string[]>;
 
   products$!: Observable<Product[]>;
   sub!: Subscription;
   selectedCategoryId?: number;
   filteredProducts$!: Observable<Product[]>;
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private productCategoryService: ProductCategoryService
+  ) {}
 
   ngOnInit(): void {
     this.products$ = this.productService.productsWithCategoryNames$.pipe(
@@ -38,14 +41,24 @@ export class ProductListComponent implements OnInit {
         return EMPTY;
       })
     );
-    this.selectedCategoryId = 1;
+
     this.filteredProducts$ = this.products$.pipe(
-      map((arrays) =>
-        arrays.filter((product) =>
+      map((arrays: Product[]) =>
+        arrays.filter((product: Product) =>
           this.selectedCategoryId
             ? product.categoryId === this.selectedCategoryId
             : true
         )
+      )
+    );
+
+    this.categories$ = this.productCategoryService.getProductCategories().pipe(
+      map((categories: ProductCategory[]) =>
+        categories.map((category: ProductCategory) => ({
+          id: category.id,
+          name: category.name,
+          description: category.description,
+        }))
       )
     );
   }
@@ -55,6 +68,6 @@ export class ProductListComponent implements OnInit {
   }
 
   onSelected(categoryId: string): void {
-    console.log('Not yet implemented');
+    this.selectedCategoryId = +categoryId;
   }
 }

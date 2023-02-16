@@ -3,7 +3,6 @@ import { ErrorHandler, Injectable } from '@angular/core';
 
 import { throwError, Observable, map, tap, catchError } from 'rxjs';
 import { ProductCategory } from './product-category';
-import { ProductCategoryData } from './product-category-data';
 
 @Injectable({
   providedIn: 'root',

@@ -8,6 +8,7 @@ import { ProductDetailComponent } from './product-list-alt/product-detail.compon
 
 import { SharedModule } from '../shared/shared.module';
 import { ProductListAltComponent } from './product-list-alt/product-list-alt.component';
+import { DistinctPipe } from './distinct-pipe.pipe';
 
 @NgModule({
   imports: [
@@ -16,19 +17,20 @@ import { ProductListAltComponent } from './product-list-alt/product-list-alt.com
     RouterModule.forChild([
       {
         path: '',
-        component: ProductListComponent
+        component: ProductListComponent,
       },
       {
         path: 'alternate',
-        component: ProductShellComponent
-      }
-    ])
+        component: ProductShellComponent,
+      },
+    ]),
   ],
   declarations: [
     ProductListComponent,
     ProductShellComponent,
     ProductListAltComponent,
-    ProductDetailComponent
-  ]
+    ProductDetailComponent,
+    DistinctPipe
+  ],
 })
-export class ProductModule { }
+export class ProductModule {}
