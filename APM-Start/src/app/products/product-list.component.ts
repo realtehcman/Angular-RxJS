@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { tap } from 'lodash';
 
 import {
+  BehaviorSubject,
   catchError,
+  combineLatest,
   distinct,
   EMPTY,
   map,
   Observable,
+  Subject,
   Subscription,
 } from 'rxjs';
 import { ProductCategory } from '../product-categories/product-category';
@@ -26,8 +30,11 @@ export class ProductListComponent implements OnInit {
 
   products$!: Observable<Product[]>;
   sub!: Subscription;
-  selectedCategoryId?: number;
+  // selectedCategoryId?: number; //hardcoded
   filteredProducts$!: Observable<Product[]>;
+
+  private categorySelectedSubject = new BehaviorSubject<number>(0);
+  categorySelectedAction$ = this.categorySelectedSubject.asObservable();
 
   constructor(
     private productService: ProductService,
@@ -35,31 +42,21 @@ export class ProductListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.products$ = this.productService.productsWithCategoryNames$.pipe(
-      catchError((error) => {
-        this.errorMessage = error;
+    this.categories$ = this.productCategoryService.getProductCategories();
+
+    this.products$ = combineLatest([
+      this.productService.productsWithCategoryNames$,
+      this.categorySelectedAction$,
+    ]).pipe(
+      map(([products, selectedCategoryId]) =>
+        products.filter((product: Product) =>
+          selectedCategoryId ? product.categoryId === selectedCategoryId : true
+        )
+      ),
+      catchError((err) => {
+        this.errorMessage = err;
         return EMPTY;
       })
-    );
-
-    this.filteredProducts$ = this.products$.pipe(
-      map((arrays: Product[]) =>
-        arrays.filter((product: Product) =>
-          this.selectedCategoryId
-            ? product.categoryId === this.selectedCategoryId
-            : true
-        )
-      )
-    );
-
-    this.categories$ = this.productCategoryService.getProductCategories().pipe(
-      map((categories: ProductCategory[]) =>
-        categories.map((category: ProductCategory) => ({
-          id: category.id,
-          name: category.name,
-          description: category.description,
-        }))
-      )
     );
   }
 
@@ -68,6 +65,7 @@ export class ProductListComponent implements OnInit {
   }
 
   onSelected(categoryId: string): void {
-    this.selectedCategoryId = +categoryId;
+    this.categorySelectedSubject.next(+categoryId);
+    console.log('from onselected ' + categoryId);
   }
 }
