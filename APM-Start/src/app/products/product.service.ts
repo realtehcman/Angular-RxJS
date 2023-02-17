@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import {
+  BehaviorSubject,
   catchError,
   combineLatest,
   map,
@@ -19,6 +20,9 @@ import { ProductCategoryService } from '../product-categories/product-category.s
 export class ProductService {
   private productsUrl = 'api/products';
   private suppliersUrl = 'api/suppliers';
+
+  private selectedRowSubject = new BehaviorSubject<number>(0);
+  selectedProductAction$ = this.selectedRowSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -42,12 +46,27 @@ export class ProductService {
           ({
             ...product,
             price: product.price ? product.price * 1.5 : 0,
-            category: categories.find((c) => product.id === c.id)?.name,
+            categoryName: categories.find((c) => product.id === c.id)?.name,
             searchKey: [product.productName],
           } as Product)
       );
     })
   );
+
+  selectedProduct$ = combineLatest([
+    this.productsWithCategoryNames$,
+    this.selectedProductAction$,
+  ]).pipe(
+    map(([productsData, selectedAction]) =>
+      productsData.find((product) => {
+        return product.id === selectedAction;
+      })
+    )
+  );
+
+  selectedProductChanged(id: number){
+    this.selectedRowSubject.next(id);
+  }
 
   private fakeProduct(): Product {
     return {
@@ -60,6 +79,11 @@ export class ProductService {
       // category: 'Toolbox',
       quantityInStock: 30,
     };
+  }
+
+  onSelected(categoryId: string): void {
+    this.selectedRowSubject.next(+categoryId);
+    console.log('from onselected ' + categoryId);
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
