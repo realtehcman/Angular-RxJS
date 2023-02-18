@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { tap } from 'lodash';
 
 import {
@@ -21,6 +21,7 @@ import { ProductService } from './product.service';
 @Component({
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductListComponent implements OnInit {
   pageTitle = 'Product List';
@@ -45,7 +46,7 @@ export class ProductListComponent implements OnInit {
     this.categories$ = this.productCategoryService.getProductCategories();
 
     this.products$ = combineLatest([
-      this.productService.productsWithCategoryNames$,
+      this.productService.productsWithAdded$,
       this.categorySelectedAction$,
     ]).pipe(
       map(([products, selectedCategoryId]) =>
@@ -61,7 +62,8 @@ export class ProductListComponent implements OnInit {
   }
 
   onAdd(): void {
-    console.log('Not yet implemented');
+    this.productService.addProduct();
+    console.log('from product list');
   }
 
   onSelected(categoryId: string): void {

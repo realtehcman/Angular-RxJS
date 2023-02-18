@@ -7,12 +7,15 @@ import {
   combineLatest,
   map,
   Observable,
+  scan,
+  Subject,
   tap,
   throwError,
 } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
+import { merge } from 'lodash';
 
 @Injectable({
   providedIn: 'root',
@@ -36,6 +39,7 @@ export class ProductService {
     );
   }
 
+  //dataStream
   productsWithCategoryNames$ = combineLatest([
     this.getProducts(),
     this.productCategoryService.getProductCategories(),
@@ -53,6 +57,7 @@ export class ProductService {
     })
   );
 
+  //
   selectedProduct$ = combineLatest([
     this.productsWithCategoryNames$,
     this.selectedProductAction$,
@@ -64,19 +69,48 @@ export class ProductService {
     )
   );
 
-  selectedProductChanged(id: number){
+  selectedProductChanged(id: number): void {
     this.selectedRowSubject.next(id);
+  }
+
+  private productInsertedSubject = new Subject<Product>();
+  // actionStream
+  productInsertedAction$ = this.productInsertedSubject.asObservable();
+
+  //dataStream
+  productsWithAdded$ = merge(
+    this.productInsertedAction$,
+    this.productsWithCategoryNames$
+  ).pipe(
+    tap((value) =>
+      console.log('before scan ' + JSON.stringify(value, null, 2))
+    ), // Added tap operator to log the emitted value
+    scan(
+      (acc, value) => (value instanceof Array ? [...value] : [...acc, value]),
+      [] as Product[]
+    ),
+    tap((value) =>
+      value.map((arr) =>
+        console.log('after scan ' + JSON.stringify(arr, null, 2))
+      )
+    ) // Added tap operator to log the emitted value
+  );
+
+  addProduct(newProduct?: Product) {
+    newProduct = newProduct || this.fakeProduct(); //if newProduct is undefined or null
+    this.productInsertedSubject.next(newProduct);
+    console.log('from service' + JSON.stringify(newProduct));
   }
 
   private fakeProduct(): Product {
     return {
-      id: 42,
+      id: 420,
       productName: 'Another One',
       productCode: 'TBX-0042',
       description: 'Our new product',
       price: 8.9,
       categoryId: 3,
-      // category: 'Toolbox',
+      categoryName: 'Toolbox',
       quantityInStock: 30,
     };
   }
