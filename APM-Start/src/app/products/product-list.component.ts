@@ -54,6 +54,8 @@ export class ProductListComponent implements OnInit {
         )
       ),
       catchError((err) => {
+      console.log('from product-list');
+
         this.errorMessage = err;
         return EMPTY;
       })

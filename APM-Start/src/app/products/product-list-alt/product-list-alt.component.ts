@@ -1,7 +1,10 @@
+import { getLocaleFirstDayOfWeek } from '@angular/common';
 import {
   Component,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { MaxLengthValidator } from '@angular/forms';
+import { writer } from 'repl';
 import { catchError, EMPTY, Observable, Subject,  } from 'rxjs';
 
 import { Product } from '../product';
@@ -23,6 +26,7 @@ export class ProductListAltComponent {
 
   product$ = this.productService.selectedProduct$.pipe(
     catchError((err) => {
+      console.log('from ProductListAltComponent');
       this.errorMessageSubject.next(err);
       return EMPTY;
     })

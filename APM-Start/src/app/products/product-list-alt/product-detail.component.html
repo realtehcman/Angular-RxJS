@@ -1,6 +1,5 @@
-<div class="card"
-     *ngIf="product$ | async as product">
-  <div class="card-header">
+<div class="card" *ngIf="product$ | async as product">
+  <div class="card-header" *ngIf="pageTitle$ | async as pageTitle">
     {{ pageTitle }}
   </div>
 
@@ -23,17 +22,23 @@
     </div>
     <div class="row">
       <div class="col-md-2">Price:</div>
-      <div class="col-md-6">{{ product.price | currency: "USD":"symbol" }}</div>
+      <div class="col-md-6">
+        {{ product.price | currency : "USD" : "symbol" }}
+      </div>
     </div>
     <div class="row">
       <div class="col-md-2">In Stock:</div>
       <div class="col-md-6">{{ product.quantityInStock }}</div>
     </div>
 
-    <div class="table-responsive"
-          *ngIf="productSuppliers">
-      <table class="table mb-0"
-             *ngIf="productSuppliers.length; else noSuppliers">
+    <div
+      class="table-responsive"
+      *ngIf="productSuppliers$ | async as productSuppliers"
+    >
+      <table
+        class="table mb-0"
+        *ngIf="productSuppliers.length; else noSuppliers"
+      >
         <thead>
           <tr>
             <th>Supplier</th>
@@ -42,9 +47,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let supplier of productSuppliers">
+          <tr *ngFor="let supplier of productSuppliers$ | async">
             <td>{{ supplier.name }}</td>
-            <td>{{ supplier.cost | currency: "USD":"symbol":"1.2-2" }}</td>
+            <td>{{ supplier.cost | currency : "USD" : "symbol" : "1.2-2" }}</td>
             <td>{{ supplier.minQuantity }}</td>
           </tr>
         </tbody>
@@ -52,13 +57,10 @@
     </div>
   </div>
   <ng-template #noSuppliers>
-    <div class="alert alert-warning">
-      No suppliers for product
-    </div>
+    <div class="alert alert-warning">No suppliers for product</div>
   </ng-template>
 </div>
 
-<div class="alert alert-danger"
-     *ngIf="errorMessage">
+<div class="alert alert-danger" *ngIf="errorMessage">
   {{ errorMessage }}
 </div>

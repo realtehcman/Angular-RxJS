@@ -1,17 +1,44 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import {
+  throwError,
+  Observable,
+  of,
+  concatMap,
+  tap,
+  catchError,
+  shareReplay,
+} from 'rxjs';
+import { Supplier } from './supplier';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
 
-  constructor(private http: HttpClient) { }
+  suppliersWithConcatMap = of(1, 5, 8).pipe(
+    tap((value) => console.log('before supplier get call ' + value)),
+    concatMap((id) => this.http.get<Supplier>(`${this.suppliersUrl}/${id}`))
+  );
 
+  constructor(private http: HttpClient) {
+    this.suppliersWithConcatMap.subscribe((item) =>
+      console.log('result of concatMap: ', item)
+    );
+  }
+
+  getSupplier(): Observable<Supplier[]> {
+    return this.http.get<Supplier[]>(this.suppliersUrl).pipe(
+      tap((data) => console.log('Suppliers: ', JSON.stringify(data))),
+      shareReplay(1),
+      catchError(this.handleError)
+    );
+  }
+  
   private handleError(err: HttpErrorResponse): Observable<never> {
+    console.log('from SupplierService handleError');
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;
@@ -26,5 +53,4 @@ export class SupplierService {
     console.error(err);
     return throwError(() => errorMessage);
   }
-
 }

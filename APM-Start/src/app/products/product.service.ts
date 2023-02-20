@@ -5,20 +5,24 @@ import {
   BehaviorSubject,
   catchError,
   combineLatest,
+  EMPTY,
   map,
   Observable,
+  shareReplay,
   tap,
   throwError,
 } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
+import { SupplierService } from '../suppliers/supplier.service';
+import { Supplier } from '../suppliers/supplier';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
-  private productsUrl = 'api/products';
+  private productsUrl = 'api/product';
   private suppliersUrl = 'api/suppliers';
 
   private selectedRowSubject = new BehaviorSubject<number>(0);
@@ -26,7 +30,8 @@ export class ProductService {
 
   constructor(
     private http: HttpClient,
-    private productCategoryService: ProductCategoryService
+    private productCategoryService: ProductCategoryService,
+    private supplierService: SupplierService
   ) {}
 
   getProducts(): Observable<Product[]> {
@@ -50,7 +55,8 @@ export class ProductService {
             searchKey: [product.productName],
           } as Product)
       );
-    })
+    }),
+    shareReplay(1)
   );
 
   selectedProduct$ = combineLatest([
@@ -61,12 +67,25 @@ export class ProductService {
       productsData.find((product) => {
         return product.id === selectedAction;
       })
-    )
+    ),
+    shareReplay(1)
   );
 
-  selectedProductChanged(id: number){
+  selectedProductChanged(id: number) {
     this.selectedRowSubject.next(id);
   }
+
+  selectedProductWithSupplier$ = combineLatest([
+    this.selectedProduct$,
+    this.supplierService.getSupplier(),
+  ]).pipe(
+    map(([product, suppliers]) =>
+      suppliers.filter((supplier: Supplier) =>
+        product?.supplierIds?.includes(supplier.id)
+      )
+    ),
+    shareReplay(1)
+  );
 
   private fakeProduct(): Product {
     return {
@@ -76,7 +95,7 @@ export class ProductService {
       description: 'Our new product',
       price: 8.9,
       categoryId: 3,
-      // category: 'Toolbox',
+      categoryName: 'Toolbox',
       quantityInStock: 30,
     };
   }
@@ -87,6 +106,7 @@ export class ProductService {
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
+    console.log('ProductService handleError');
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;

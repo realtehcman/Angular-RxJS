@@ -1,7 +1,14 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ErrorHandler, Injectable } from '@angular/core';
 
-import { throwError, Observable, map, tap, catchError } from 'rxjs';
+import {
+  throwError,
+  Observable,
+  map,
+  tap,
+  catchError,
+  shareReplay,
+} from 'rxjs';
 import { ProductCategory } from './product-category';
 
 @Injectable({
@@ -16,12 +23,16 @@ export class ProductCategoryService {
     return this.http.get(this.productCategoriesUrl).pipe(
       map((response: any) => response as ProductCategory[]),
       tap((value) => 'Data from category1: ' + JSON.stringify(value)),
-      tap((value) => console.log('Data from category2: ' + JSON.stringify(value))),
-      catchError((err) => this.handleError(err))
+      tap((value) =>
+        console.log('Data from category2: ' + JSON.stringify(value))
+      ),
+      shareReplay(1),
+      catchError(this.handleError)
     );
   }
 
   private handleError(err: HttpErrorResponse): Observable<never> {
+    console.log('from ProductCategoryService handleError ');
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;
