@@ -28,11 +28,12 @@ export class ProductDetailComponent {
     )
   );
 
-  productSuppliers$ = this.productService.selectedProductWithSupplier$.pipe(
-    catchError((err) => {
-      console.log('from ProductDetailComponent productSuppliers$');
-      this.errorMessage = err;
-      return EMPTY;
-    })
-  );
+  productSuppliers$ =
+    this.productService.getAllSelectedProductWithSupplier$.pipe(
+      catchError((err) => {
+        console.log('from ProductDetailComponent productSuppliers$');
+        this.errorMessage = err;
+        return EMPTY;
+      })
+    );
 }

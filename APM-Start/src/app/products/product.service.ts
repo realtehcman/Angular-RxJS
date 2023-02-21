@@ -6,9 +6,14 @@ import {
   catchError,
   combineLatest,
   EMPTY,
+  forkJoin,
   map,
+  mergeMap,
   Observable,
+  of,
+  OperatorFunction,
   shareReplay,
+  switchMap,
   tap,
   throwError,
 } from 'rxjs';
@@ -17,12 +22,13 @@ import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 import { SupplierService } from '../suppliers/supplier.service';
 import { Supplier } from '../suppliers/supplier';
+import { filter } from 'lodash';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
-  private productsUrl = 'api/product';
+  private productsUrl = 'api/products';
   private suppliersUrl = 'api/suppliers';
 
   private selectedRowSubject = new BehaviorSubject<number>(0);
@@ -75,7 +81,8 @@ export class ProductService {
     this.selectedRowSubject.next(id);
   }
 
-  selectedProductWithSupplier$ = combineLatest([
+  //get all approach to retrieve all elements. fast, but for large data it is resource taking
+  getAllSelewctedProductWithSupplier$ = combineLatest([
     this.selectedProduct$,
     this.supplierService.getSupplier(),
   ]).pipe(
@@ -85,6 +92,25 @@ export class ProductService {
       )
     ),
     shareReplay(1)
+  );
+
+  //get each approach to retrieve all elements. slow, but for large data it is less resource taking
+  getAllSelectedProductWithSupplier$ = this.selectedProduct$.pipe(
+    switchMap((selectedProduct?: Product) => {
+      if (selectedProduct?.supplierIds) {
+        return forkJoin(
+          selectedProduct.supplierIds.map((id: number) =>
+            this.http.get<Supplier>(`${this.suppliersUrl}/${id}`)
+          )
+        );
+      } else {
+        return of([]);
+      }
+    }),
+    tap((supplier) =>
+      console.log('suppliers from product service ' + JSON.stringify(supplier))
+    ),
+    shareReplay(2)
   );
 
   private fakeProduct(): Product {
